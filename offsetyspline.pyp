@@ -11,10 +11,9 @@ Usage Instructions
 6. Set the generating spline as input child of the OffsetYSpline
 """
 
-
-#   =====================================================================================================================#
-#       Imports
-#   =====================================================================================================================#
+#	=====================================================================================================================#
+#		Imports
+#	=====================================================================================================================#
 import os
 
 import c4d
@@ -22,9 +21,9 @@ import c4d
 PLUGIN_ID = 98989801
 
 
-#   =====================================================================================================================#
-#       Global Functions Definitions
-#   =====================================================================================================================#
+#	=====================================================================================================================#
+#		Global Functions Definitions
+#	=====================================================================================================================#
 # Global function responsible to set the close status of a spline
 def SetClosed(spline, value):
     if spline is not None:
@@ -33,6 +32,7 @@ def SetClosed(spline, value):
         return True
 
     return False
+
 
 # Global function responsible to check the close status of a spline
 def IsClosed(spline):
@@ -44,6 +44,7 @@ def IsClosed(spline):
     else:
         return spline.IsClosed()
 
+
 # Global function responsible to copy the spline parameters across a source and a destination
 def CopySplineParamsValue(sourceSpline, destSpline):
     if sourceSpline is None or destSpline is None:
@@ -53,13 +54,20 @@ def CopySplineParamsValue(sourceSpline, destSpline):
     if sourceRealSpline is not None:
         sourceRealSplineBC = sourceRealSpline.GetDataInstance()
         if sourceRealSplineBC is not None:
-            destSpline.SetParameter(c4d.SPLINEOBJECT_INTERPOLATION, sourceRealSplineBC.GetInt32(c4d.SPLINEOBJECT_INTERPOLATION), c4d.DESCFLAGS_SET_FORCESET)
-            destSpline.SetParameter(c4d.SPLINEOBJECT_MAXIMUMLENGTH, sourceRealSplineBC.GetFloat(c4d.SPLINEOBJECT_MAXIMUMLENGTH), c4d.DESCFLAGS_SET_FORCESET)
-            destSpline.SetParameter(c4d.SPLINEOBJECT_SUB, sourceRealSplineBC.GetInt32(c4d.SPLINEOBJECT_SUB), c4d.DESCFLAGS_SET_FORCESET)
-            destSpline.SetParameter(c4d.SPLINEOBJECT_ANGLE, sourceRealSplineBC.GetFloat(c4d.SPLINEOBJECT_ANGLE), c4d.DESCFLAGS_SET_FORCESET)
+            destSpline.SetParameter(c4d.SPLINEOBJECT_INTERPOLATION,
+                                    sourceRealSplineBC.GetInt32(c4d.SPLINEOBJECT_INTERPOLATION),
+                                    c4d.DESCFLAGS_SET_FORCESET)
+            destSpline.SetParameter(c4d.SPLINEOBJECT_MAXIMUMLENGTH,
+                                    sourceRealSplineBC.GetFloat(c4d.SPLINEOBJECT_MAXIMUMLENGTH),
+                                    c4d.DESCFLAGS_SET_FORCESET)
+            destSpline.SetParameter(c4d.SPLINEOBJECT_SUB, sourceRealSplineBC.GetInt32(c4d.SPLINEOBJECT_SUB),
+                                    c4d.DESCFLAGS_SET_FORCESET)
+            destSpline.SetParameter(c4d.SPLINEOBJECT_ANGLE, sourceRealSplineBC.GetFloat(c4d.SPLINEOBJECT_ANGLE),
+                                    c4d.DESCFLAGS_SET_FORCESET)
             return True
 
     return False
+
 
 # Global function responsible to return the final representation of the spline
 def FinalSpline(source):
@@ -67,7 +75,7 @@ def FinalSpline(source):
         return None
 
     # check is source can be threated as a spline
-    if (not source.IsInstanceOf(c4d.Oline)) and (not(source.GetInfo()&c4d.OBJECT_SPLINE)):
+    if (not source.IsInstanceOf(c4d.Oline)) and (not (source.GetInfo() & c4d.OBJECT_SPLINE)):
         return None
 
     if source.GetDeformCache() is not None:
@@ -79,6 +87,7 @@ def FinalSpline(source):
         return source.GetRealSpline()
 
     return source
+
 
 # Global function responsible for modifying the spline
 def OffsetSpline(inputSpline, offsetValue):
@@ -94,7 +103,7 @@ def OffsetSpline(inputSpline, offsetValue):
 
     # local matrix for updating the tangents direction and scaling in parent space
     inputScaleRotate = inputSpline.GetMl()
-    inputScaleRotate.off = c4d.Vector(0,0,0)
+    inputScaleRotate.off = c4d.Vector(0, 0, 0)
 
     # retrieve child points count and type
     pointsCnt = inputSpline.GetPointCount()
@@ -112,16 +121,17 @@ def OffsetSpline(inputSpline, offsetValue):
 
     # set the points position and tangency data
     for i in range(pointsCnt):
-        #currPos = inputSpline.GetPoint(i)
+        # currPos = inputSpline.GetPoint(i)
         currPos = inputML * inputSpline.GetPoint(i)
-        resSpline.SetPoint(i, c4d.Vector(currPos.x,currPos.y+offsetValue, currPos.z))
+        resSpline.SetPoint(i, c4d.Vector(currPos.x, currPos.y + offsetValue, currPos.z))
         # set in case the tangency data
         if tangentsCnt != 0:
             currTan = inputSpline.GetTangent(i)
-            resSpline.SetTangent(i, inputScaleRotate*currTan["vl"], inputScaleRotate*currTan["vr"])
+            resSpline.SetTangent(i, inputScaleRotate * currTan["vl"], inputScaleRotate * currTan["vr"])
 
     # return the computed spline
     return resSpline
+
 
 # Global function responsible to return the first enabled object in a hierarchy
 def RecurseOnChild(op):
@@ -132,8 +142,8 @@ def RecurseOnChild(op):
     if childObj is None:
         return None
 
-    #skip deformers
-    isModifier = childObj.GetInfo()&c4d.OBJECT_MODIFIER
+        # skip deformers
+    isModifier = childObj.GetInfo() & c4d.OBJECT_MODIFIER
     if isModifier:
         return None
 
@@ -142,6 +152,7 @@ def RecurseOnChild(op):
         return childObj
     else:
         return RecurseOnChild(childObj)
+
 
 # Global function responsible to recursively check the dirty flag in a hierarchy
 def RecursiveCheckDirty(op):
@@ -164,11 +175,11 @@ def RecursiveCheckDirty(op):
 
     return res
 
+
 # =====================================================================================================================#
 #   Class Definitions
 # =====================================================================================================================#
 class OffsetYSpline(c4d.plugins.ObjectData):
-
     def Init(self, op):
         if op is None:
             return False
@@ -261,7 +272,9 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         dirty |= cloneDirty
 
         # recursively check the dirty flag for the children (deformers or other generators)
-        if temp is not None and (temp.IsInstanceOf(c4d.Ospline) or (temp.GetInfo()&c4d.OBJECT_ISSPLINE) or temp.IsInstanceOf(c4d.Oline)):
+        if temp is not None and (
+                temp.IsInstanceOf(c4d.Ospline) or (temp.GetInfo() & c4d.OBJECT_ISSPLINE) or temp.IsInstanceOf(
+                c4d.Oline)):
             childDirty = RecursiveCheckDirty(child)
             if childSpline is None:
                 childSpline = temp
@@ -282,7 +295,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         if childSpline is None:
             return c4d.BaseObject(c4d.Onull)
 
-        #operate the spline modification
+            # operate the spline modification
         resSpline = OffsetSpline(FinalSpline(childSpline), offsetValue)
         if resSpline is None:
             return c4d.BaseObject(c4d.Onull)
@@ -312,14 +325,13 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             return None
 
         child = None
-        childSpline  = None
+        childSpline = None
         resSpline = None
 
         bc = op.GetDataInstance()
         if bc is None:
             return None
         offsetValue = bc.GetFloat(c4d.PY_OFFSETYSPLINE_OFFSET)
-
 
         child = RecurseOnChild(op)
         if child is None:
@@ -337,7 +349,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             if temp is None:
                 return None
 
-            result = c4d.utils.SendModelingCommand(command = c4d.MCOMMAND_CURRENTSTATETOOBJECT, list = [temp], doc = doc)
+            result = c4d.utils.SendModelingCommand(command=c4d.MCOMMAND_CURRENTSTATETOOBJECT, list=[temp], doc=doc)
 
             if result is False:
                 return None
@@ -345,7 +357,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             if isinstance(result, list) and temp is not result[0] and result[0] is not None:
                 temp = result[0]
                 if (temp.GetType() == c4d.Onull):
-                    result2 = c4d.utils.SendModelingCommand(command = c4d.MCOMMAND_JOIN, list = [temp], doc = doc)
+                    result2 = c4d.utils.SendModelingCommand(command=c4d.MCOMMAND_JOIN, list=[temp], doc=doc)
 
                     if result2 is False:
                         return None
@@ -353,15 +365,16 @@ class OffsetYSpline(c4d.plugins.ObjectData):
                     if isinstance(result2, list) and result2[0] is not None and temp is not result2[0]:
                         temp = result2[0]
 
-
-        if (temp is not None and (temp.IsInstanceOf(c4d.Ospline) or (temp.GetInfo()&c4d.OBJECT_SPLINE) or temp.IsInstanceOf(c4d.Oline))):
+        if (temp is not None and (
+                temp.IsInstanceOf(c4d.Ospline) or (temp.GetInfo() & c4d.OBJECT_SPLINE) or temp.IsInstanceOf(
+                c4d.Oline))):
             if childSpline is None:
                 childSpline = temp
 
         if childSpline is None:
             return None
 
-        #operate the spline modification
+            # operate the spline modification
         resSpline = OffsetSpline(FinalSpline(childSpline), offsetValue)
         if resSpline is None:
             return None
@@ -377,14 +390,15 @@ class OffsetYSpline(c4d.plugins.ObjectData):
 
         return resSpline
 
+
 # =====================================================================================================================#
 #   Plugin registration
 # =====================================================================================================================#
 
 if __name__ == "__main__":
     c4d.plugins.RegisterObjectPlugin(id=PLUGIN_ID,
-                                str="Py-OffsetYSpline(DR)",
-                                g=OffsetYSpline,
-                                description="DataRepo_OoffsetYSpline",
-                                icon=None,
-                                info=c4d.OBJECT_GENERATOR | c4d.OBJECT_INPUT | c4d.OBJECT_ISSPLINE)
+                                     str="Py-OffsetYSpline(DR)",
+                                     g=OffsetYSpline,
+                                     description="DataRepo_OoffsetYSpline",
+                                     icon=None,
+                                     info=c4d.OBJECT_GENERATOR | c4d.OBJECT_INPUT | c4d.OBJECT_ISSPLINE)
