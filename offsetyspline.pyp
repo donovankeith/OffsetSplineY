@@ -11,21 +11,21 @@ Usage Instructions
 6. Set the generating spline as input child of the OffsetYSpline
 """
 
-#	=====================================================================================================================#
-#		Imports
-#	=====================================================================================================================#
-import os
+# =====================================================================================================================#
+# Imports
+# =====================================================================================================================#
 
 import c4d
-
 PLUGIN_ID = 98989801
 
 
-#	=====================================================================================================================#
-#		Global Functions Definitions
-#	=====================================================================================================================#
-# Global function responsible to set the close status of a spline
+# =====================================================================================================================#
+# Global Functions Definitions
+# =====================================================================================================================#
+
 def SetClosed(spline, value):
+    """Global function responsible to set the close status of a spline"""
+
     if spline is not None:
         spline.SetParameter(c4d.DescID(c4d.DescLevel(c4d.SPLINEOBJECT_CLOSED)), value, c4d.DESCFLAGS_SET_FORCESET)
         spline.GetDataInstance().SetBool(c4d.SPLINEOBJECT_CLOSED, value)
@@ -34,8 +34,9 @@ def SetClosed(spline, value):
     return False
 
 
-# Global function responsible to check the close status of a spline
 def IsClosed(spline):
+    """Global function responsible to check the close status of a spline"""
+
     if spline is None:
         return False
 
@@ -45,8 +46,9 @@ def IsClosed(spline):
         return spline.IsClosed()
 
 
-# Global function responsible to copy the spline parameters across a source and a destination
 def CopySplineParamsValue(sourceSpline, destSpline):
+    """Global function responsible to copy the spline parameters across a source and a destination"""
+
     if sourceSpline is None or destSpline is None:
         return False
 
@@ -69,8 +71,9 @@ def CopySplineParamsValue(sourceSpline, destSpline):
     return False
 
 
-# Global function responsible to return the final representation of the spline
 def FinalSpline(source):
+    """Global function responsible to return the final representation of the spline"""
+
     if source is None:
         return None
 
@@ -89,8 +92,9 @@ def FinalSpline(source):
     return source
 
 
-# Global function responsible for modifying the spline
 def OffsetSpline(inputSpline, offsetValue):
+    """Global function responsible for modifying the spline"""
+
     if inputSpline is None:
         return None
 
@@ -133,8 +137,9 @@ def OffsetSpline(inputSpline, offsetValue):
     return resSpline
 
 
-# Global function responsible to return the first enabled object in a hierarchy
 def RecurseOnChild(op):
+    """Global function responsible to return the first enabled object in a hierarchy"""
+
     if op is None:
         return None
 
@@ -154,8 +159,9 @@ def RecurseOnChild(op):
         return RecurseOnChild(childObj)
 
 
-# Global function responsible to recursively check the dirty flag in a hierarchy
 def RecursiveCheckDirty(op):
+    """Global function responsible to recursively check the dirty flag in a hierarchy"""
+
     res = 0
 
     if op is None:
