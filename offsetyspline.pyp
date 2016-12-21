@@ -187,24 +187,28 @@ def RecursiveCheckDirty(op):
 # =====================================================================================================================#
 class OffsetYSpline(c4d.plugins.ObjectData):
     def __init__(self):
+        """Create member variables"""
+
         self._contourChildDirty = -1
         self._childDirty = -1
 
     def Init(self, op):
+        """Establish default values for Dialog"""
+
         if op is None:
             return False
 
         bc = op.GetDataInstance()
         if bc is None:
             return False
-        bc.SetInt32(c4d.PY_OFFSETYSPLINE_OFFSET, 100)
 
-        self._contourChildDirty = -1
-        self._childDirty = -1
+        bc.SetInt32(c4d.PY_OFFSETYSPLINE_OFFSET, 100)
 
         return True
 
     def GetDimension(self, op, mp, rad):
+        """Return the Bounding Box of op"""
+
         mp.x = 0
         mp.y = 0
         mp.z = 0
@@ -225,6 +229,8 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             mp.z = op.GetMg().off.z
 
     def CheckDirty(self, op, doc):
+        """Returns True if op or its children are Dirty. (I think) It's only used for GetContour checks."""
+
         if op is None or doc is None:
             return
 
@@ -241,6 +247,8 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         self._contourChildDirty = childDirty
 
     def GetVirtualObjects(self, op, hh):
+        """Return the result of the generator."""
+
         if op is None or hh is None:
             return None
 
@@ -384,7 +392,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         if childSpline is None:
             return None
 
-            # operate the spline modification
+        # operate the spline modification
         resSpline = OffsetSpline(FinalSpline(childSpline), offsetValue)
         if resSpline is None:
             return None
