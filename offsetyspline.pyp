@@ -186,6 +186,10 @@ def RecursiveCheckDirty(op):
 #   Class Definitions
 # =====================================================================================================================#
 class OffsetYSpline(c4d.plugins.ObjectData):
+    def __init__(self):
+        self._contourChildDirty = -1
+        self._childDirty = -1
+
     def Init(self, op):
         if op is None:
             return False
@@ -195,7 +199,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             return False
         bc.SetInt32(c4d.PY_OFFSETYSPLINE_OFFSET, 100)
 
-        self._countourChildDirty = -1
+        self._contourChildDirty = -1
         self._childDirty = -1
 
         return True
@@ -231,10 +235,10 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         if child is not None:
             childDirty = RecursiveCheckDirty(child)
 
-        if (childDirty != self._countourChildDirty):
+        if (childDirty != self._contourChildDirty):
             op.SetDirty(c4d.DIRTYFLAGS_DATA)
 
-        self._countourChildDirty = childDirty
+        self._contourChildDirty = childDirty
 
     def GetVirtualObjects(self, op, hh):
         if op is None or hh is None:
@@ -258,7 +262,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         child = RecurseOnChild(op)
         if child is None:
             self._childDirty = -1
-            self._countourChildDirty = -1
+            self._contourChildDirty = -1
             return c4d.BaseObject(c4d.Onull)
 
         # Store now the closure state of the child cause child will be later on overwritten
@@ -342,7 +346,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         child = RecurseOnChild(op)
         if child is None:
             self._childDirty = 0
-            self._countourChildDirty = 0
+            self._contourChildDirty = 0
             return None
 
         # Store now the closure state of the child cause child will be later on overwritten
@@ -405,6 +409,6 @@ if __name__ == "__main__":
     c4d.plugins.RegisterObjectPlugin(id=PLUGIN_ID,
                                      str="Py-OffsetYSpline(DR)",
                                      g=OffsetYSpline,
-                                     description="DataRepo_OoffsetYSpline",
+                                     description="OoffsetYSpline",
                                      icon=None,
                                      info=c4d.OBJECT_GENERATOR | c4d.OBJECT_INPUT | c4d.OBJECT_ISSPLINE)
