@@ -66,26 +66,26 @@ def IsClosed(spline):
         return spline.IsClosed()
 
 
-def CopySplineParamsValue(sourceSpline, destSpline):
+def CopySplineParamsValue(source_spline, dest_spline):
     """Global function responsible to copy the spline parameters across a source and a destination"""
 
-    if sourceSpline is None or destSpline is None:
+    if source_spline is None or dest_spline is None:
         return False
 
-    sourceRealSpline = sourceSpline.GetRealSpline()
-    if sourceRealSpline is not None:
-        sourceRealSplineBC = sourceRealSpline.GetDataInstance()
-        if sourceRealSplineBC is not None:
-            destSpline.SetParameter(c4d.SPLINEOBJECT_INTERPOLATION,
-                                    sourceRealSplineBC.GetInt32(c4d.SPLINEOBJECT_INTERPOLATION),
-                                    c4d.DESCFLAGS_SET_FORCESET)
-            destSpline.SetParameter(c4d.SPLINEOBJECT_MAXIMUMLENGTH,
-                                    sourceRealSplineBC.GetFloat(c4d.SPLINEOBJECT_MAXIMUMLENGTH),
-                                    c4d.DESCFLAGS_SET_FORCESET)
-            destSpline.SetParameter(c4d.SPLINEOBJECT_SUB, sourceRealSplineBC.GetInt32(c4d.SPLINEOBJECT_SUB),
-                                    c4d.DESCFLAGS_SET_FORCESET)
-            destSpline.SetParameter(c4d.SPLINEOBJECT_ANGLE, sourceRealSplineBC.GetFloat(c4d.SPLINEOBJECT_ANGLE),
-                                    c4d.DESCFLAGS_SET_FORCESET)
+    source_real_spline = source_spline.GetRealSpline()
+    if source_real_spline is not None:
+        source_real_spline_bc = source_real_spline.GetDataInstance()
+        if source_real_spline_bc is not None:
+            dest_spline.SetParameter(c4d.SPLINEOBJECT_INTERPOLATION,
+                                     source_real_spline_bc.GetInt32(c4d.SPLINEOBJECT_INTERPOLATION),
+                                     c4d.DESCFLAGS_SET_FORCESET)
+            dest_spline.SetParameter(c4d.SPLINEOBJECT_MAXIMUMLENGTH,
+                                     source_real_spline_bc.GetFloat(c4d.SPLINEOBJECT_MAXIMUMLENGTH),
+                                     c4d.DESCFLAGS_SET_FORCESET)
+            dest_spline.SetParameter(c4d.SPLINEOBJECT_SUB, source_real_spline_bc.GetInt32(c4d.SPLINEOBJECT_SUB),
+                                     c4d.DESCFLAGS_SET_FORCESET)
+            dest_spline.SetParameter(c4d.SPLINEOBJECT_ANGLE, source_real_spline_bc.GetFloat(c4d.SPLINEOBJECT_ANGLE),
+                                     c4d.DESCFLAGS_SET_FORCESET)
             return True
 
     return False
@@ -112,49 +112,49 @@ def FinalSpline(source):
     return source
 
 
-def OffsetSpline(inputSpline, offsetValue):
+def OffsetSpline(input_spline, offset_value):
     """Global function responsible for modifying the spline"""
 
-    if inputSpline is None:
+    if input_spline is None:
         return None
 
     # just return if the input object doesn't belong to spline or line type
-    if not IsSplineOrLine(inputSpline):
+    if not IsSplineOrLine(input_spline):
         return None
 
     # local matrix for updating the point position in parent space
-    inputML = inputSpline.GetMl()
+    input_ml = input_spline.GetMl()
 
     # local matrix for updating the tangents direction and scaling in parent space
-    inputScaleRotate = inputSpline.GetMl()
-    inputScaleRotate.off = c4d.Vector(0, 0, 0)
+    input_scale_rotate = input_spline.GetMl()
+    input_scale_rotate.off = c4d.Vector(0, 0, 0)
 
     # retrieve child points count and type
-    pointsCnt = inputSpline.GetPointCount()
-    tangentsCnt = 0
-    splineType = 0
+    point_count = input_spline.GetPointCount()
+    tangent_count = 0
+    spline_type = 0
 
-    if (inputSpline.GetType() == c4d.Ospline):
-        tangentsCnt = inputSpline.GetTangentCount()
-        splineType = inputSpline.GetInterpolationType()
+    if (input_spline.GetType() == c4d.Ospline):
+        tangent_count = input_spline.GetTangentCount()
+        spline_type = input_spline.GetInterpolationType()
 
     # allocate the resulting spline
-    resSpline = c4d.SplineObject(pointsCnt, splineType)
-    if resSpline is None:
+    result_spline = c4d.SplineObject(point_count, spline_type)
+    if result_spline is None:
         return None
 
     # set the points position and tangency data
-    for i in range(pointsCnt):
-        # currPos = inputSpline.GetPoint(i)
-        currPos = inputML * inputSpline.GetPoint(i)
-        resSpline.SetPoint(i, c4d.Vector(currPos.x, currPos.y + offsetValue, currPos.z))
+    for i in range(point_count):
+        # currPos = input_spline.GetPoint(i)
+        cur_pos = input_ml * input_spline.GetPoint(i)
+        result_spline.SetPoint(i, c4d.Vector(cur_pos.x, cur_pos.y + offset_value, cur_pos.z))
         # set in case the tangency data
-        if tangentsCnt != 0:
-            currTan = inputSpline.GetTangent(i)
-            resSpline.SetTangent(i, inputScaleRotate * currTan["vl"], inputScaleRotate * currTan["vr"])
+        if tangent_count != 0:
+            cur_tangent = input_spline.GetTangent(i)
+            result_spline.SetTangent(i, input_scale_rotate * cur_tangent["vl"], input_scale_rotate * cur_tangent["vr"])
 
     # return the computed spline
-    return resSpline
+    return result_spline
 
 
 def RecurseOnChild(op):
@@ -163,20 +163,20 @@ def RecurseOnChild(op):
     if op is None:
         return None
 
-    childObj = op.GetDown()
-    if childObj is None:
+    child_obj = op.GetDown()
+    if child_obj is None:
         return None
 
     # skip deformers
-    isModifier = childObj.GetInfo() & c4d.OBJECT_MODIFIER
+    isModifier = child_obj.GetInfo() & c4d.OBJECT_MODIFIER
     if isModifier:
         return None
 
     # check and return the first active child
-    if childObj.GetDeformMode():
-        return childObj
+    if child_obj.GetDeformMode():
+        return child_obj
     else:
-        return RecurseOnChild(childObj)
+        return RecurseOnChild(child_obj)
 
 
 def RecursiveCheckDirty(op):
@@ -187,25 +187,27 @@ def RecursiveCheckDirty(op):
     if op is None:
         return res
 
-    current = op
-    nextObj = op.GetNext()
-    childObj = op.GetDown()
+    cur_obj = op
+    next_obj = op.GetNext()
+    child_obj = op.GetDown()
 
-    res += current.GetDirty(c4d.DIRTYFLAGS_DATA | c4d.DIRTYFLAGS_MATRIX)
+    res += cur_obj.GetDirty(c4d.DIRTYFLAGS_DATA | c4d.DIRTYFLAGS_MATRIX)
 
-    if childObj is not None:
-        res += RecursiveCheckDirty(childObj)
+    if child_obj is not None:
+        res += RecursiveCheckDirty(child_obj)
 
-    if nextObj is not None:
-        res += RecursiveCheckDirty(nextObj)
+    if next_obj is not None:
+        res += RecursiveCheckDirty(next_obj)
 
     return res
+
 
 def IsSplineOrLine(op):
     if op is None:
         return False
 
     return op.IsInstanceOf(c4d.Ospline) or op.IsInstanceOf(c4d.Oline)
+
 
 def IsSplineCompatible(op):
     if op is None:
@@ -220,8 +222,8 @@ class OffsetYSpline(c4d.plugins.ObjectData):
     def __init__(self):
         """Create member variables"""
 
-        self._contourChildDirty = -1
-        self._childDirty = -1
+        self._countour_child_dirty = -1
+        self._child_dirty = -1
 
     def Init(self, op):
         """Establish default values for Dialog"""
@@ -243,17 +245,17 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         if (op is None) or (doc is None):
             return
 
-        childDirty = 0
+        child_dirty = 0
 
         child = op.GetDown()
 
         if child is not None:
-            childDirty = RecursiveCheckDirty(child)
+            child_dirty = RecursiveCheckDirty(child)
 
-        if childDirty != self._contourChildDirty:
+        if child_dirty != self._countour_child_dirty:
             op.SetDirty(c4d.DIRTYFLAGS_DATA)
 
-        self._contourChildDirty = childDirty
+        self._countour_child_dirty = child_dirty
 
     def GetVirtualObjects(self, op, hh):
         """Return the result of the generator."""
@@ -262,47 +264,47 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             return None
 
         child = None
-        childSpline = None
-        resSpline = None
+        child_spline = None
+        result_spline = None
         dirty = False
-        cloneDirty = False
+        clone_dirty = False
         temp = None
-        childDirty = -1
+        child_dirty = -1
 
         cache = op.GetCache()
         bc = op.GetDataInstance()
         if bc is None:
             return c4d.BaseObject(c4d.Onull)
-        offsetValue = bc.GetFloat(c4d.PY_OFFSETYSPLINE_OFFSET)
+        offset_value = bc.GetFloat(c4d.PY_OFFSETYSPLINE_OFFSET)
 
         # look for the first enabled child in order to support hierarchical
         child = RecurseOnChild(op)
         if child is None:
-            self._childDirty = -1
-            self._contourChildDirty = -1
+            self._child_dirty = -1
+            self._countour_child_dirty = -1
             return c4d.BaseObject(c4d.Onull)
 
         # Store now the closure state of the child cause child will be later on overwritten
-        isChildClosed = IsClosed(child.GetRealSpline())
+        is_child_closed = IsClosed(child.GetRealSpline())
 
         # Use the GetHierarchyClone and the GetAndCheckHierarchyClone to operate as a two-step
         # GetHierarchyClone operates when passing a bool reference in the first step to check
         # the dirtyness and a nullptr on a second step to operate the real clone
-        resGHC = op.GetHierarchyClone(hh, child, c4d.HIERARCHYCLONEFLAGS_ASSPLINE)
-        if resGHC is None:
-            resGHC = op.GetAndCheckHierarchyClone(hh, child, c4d.HIERARCHYCLONEFLAGS_ASSPLINE, False)
+        result_ghc = op.GetHierarchyClone(hh, child, c4d.HIERARCHYCLONEFLAGS_ASSPLINE)
+        if result_ghc is None:
+            result_ghc = op.GetAndCheckHierarchyClone(hh, child, c4d.HIERARCHYCLONEFLAGS_ASSPLINE, False)
 
-        if resGHC is not None:
-            cloneDirty = resGHC["dirty"]
-            temp = resGHC["clone"]
+        if result_ghc is not None:
+            clone_dirty = result_ghc["dirty"]
+            temp = result_ghc["clone"]
 
-        dirty |= cloneDirty
+        dirty |= clone_dirty
 
         # recursively check the dirty flag for the children (deformers or other generators)
         if IsSplineCompatible(temp):
-            childDirty = RecursiveCheckDirty(child)
-            if childSpline is None:
-                childSpline = temp
+            child_dirty = RecursiveCheckDirty(child)
+            if child_spline is None:
+                child_spline = temp
 
         child.Touch()
 
@@ -311,33 +313,33 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         # compare the dirtyness of local and member variable and accordingly update the generator's
         # dirty status and the member variable value
         # check is &= or |=
-        dirty |= self._childDirty != childDirty
-        self._childDirty = childDirty
+        dirty |= self._child_dirty != child_dirty
+        self._child_dirty = child_dirty
 
         if not dirty and cache is not None:
             return cache
 
-        if childSpline is None:
+        if child_spline is None:
             return c4d.BaseObject(c4d.Onull)
 
             # operate the spline modification
-        resSpline = OffsetSpline(FinalSpline(childSpline), offsetValue)
-        if resSpline is None:
+        result_spline = OffsetSpline(FinalSpline(child_spline), offset_value)
+        if result_spline is None:
             return c4d.BaseObject(c4d.Onull)
 
         # restore the closing status of the spline
-        SetClosed(resSpline, isChildClosed)
+        SetClosed(result_spline, is_child_closed)
 
         # copy the spline tags
-        childSpline.CopyTagsTo(resSpline, True, c4d.NOTOK, c4d.NOTOK)
+        child_spline.CopyTagsTo(result_spline, True, c4d.NOTOK, c4d.NOTOK)
 
         # copy the spline parameters value
-        CopySplineParamsValue(childSpline, resSpline)
+        CopySplineParamsValue(child_spline, result_spline)
 
         # notify about the generator update
-        resSpline.Message(c4d.MSG_UPDATE)
+        result_spline.Message(c4d.MSG_UPDATE)
 
-        return resSpline
+        return result_spline
 
     def GetContour(self, op, doc, lod, bt):
         if op is None:
@@ -350,8 +352,8 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             return None
 
         child = None
-        childSpline = None
-        resSpline = None
+        child_spline = None
+        result_spline = None
 
         bc = op.GetDataInstance()
         if bc is None:
@@ -360,8 +362,8 @@ class OffsetYSpline(c4d.plugins.ObjectData):
 
         child = RecurseOnChild(op)
         if child is None:
-            self._childDirty = 0
-            self._contourChildDirty = 0
+            self._child_dirty = 0
+            self._countour_child_dirty = 0
             return None
 
         # Store now the closure state of the child cause child will be later on overwritten
@@ -392,27 +394,27 @@ class OffsetYSpline(c4d.plugins.ObjectData):
                         temp = result2[0]
 
         if IsSplineCompatible(temp):
-            if childSpline is None:
-                childSpline = temp
+            if child_spline is None:
+                child_spline = temp
 
-        if childSpline is None:
+        if child_spline is None:
             return None
 
         # operate the spline modification
-        resSpline = OffsetSpline(FinalSpline(childSpline), offsetValue)
-        if resSpline is None:
+        result_spline = OffsetSpline(FinalSpline(child_spline), offsetValue)
+        if result_spline is None:
             return None
 
         # restore the closing status of the spline
-        SetClosed(resSpline, isChildClosed)
+        SetClosed(result_spline, isChildClosed)
 
         # copy the spline parameters value
-        CopySplineParamsValue(childSpline, resSpline)
+        CopySplineParamsValue(child_spline, result_spline)
 
         # notify about the generator update
-        resSpline.Message(c4d.MSG_UPDATE)
+        result_spline.Message(c4d.MSG_UPDATE)
 
-        return resSpline
+        return result_spline
 
 
 # =====================================================================================================================#
