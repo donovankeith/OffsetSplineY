@@ -108,7 +108,7 @@ def FinalSpline(source):
         return None
 
     # check is source can be treated as a spline
-    if (not source.IsInstanceOf(c4d.Oline)) and (not (source.GetInfo() & c4d.OBJECT_SPLINE)):
+    if not IsSplineCompatible(source):
         return None
 
     if source.GetDeformCache() is not None:
@@ -129,7 +129,7 @@ def OffsetSpline(inputSpline, offsetValue):
         return None
 
     # just return if the input object doesn't belong to spline or line type
-    if not inputSpline.IsInstanceOf(c4d.Ospline) and not inputSpline.IsInstanceOf(c4d.Oline):
+    if not IsSplineOrLine(inputSpline):
         return None
 
     # local matrix for updating the point position in parent space
@@ -211,6 +211,17 @@ def RecursiveCheckDirty(op):
 
     return res
 
+def IsSplineOrLine(op):
+    if op is None:
+        return False
+
+    return op.IsInstanceOf(c4d.Ospline) or op.IsInstanceOf(c4d.Oline)
+
+def IsSplineCompatible(op):
+    if op is None:
+        return False
+
+    return IsSplineOrLine(op) or (op.GetInfo() & c4d.OBJECT_ISSPLINE)
 
 # =====================================================================================================================#
 #   Class Definitions
@@ -324,9 +335,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         dirty |= cloneDirty
 
         # recursively check the dirty flag for the children (deformers or other generators)
-        if temp is not None and (
-                temp.IsInstanceOf(c4d.Ospline) or (temp.GetInfo() & c4d.OBJECT_ISSPLINE) or temp.IsInstanceOf(
-                c4d.Oline)):
+        if IsSplineCompatible(temp):
             childDirty = RecursiveCheckDirty(child)
             if childSpline is None:
                 childSpline = temp
@@ -417,9 +426,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
                     if isinstance(result2, list) and result2[0] is not None and temp is not result2[0]:
                         temp = result2[0]
 
-        if (temp is not None and (
-                temp.IsInstanceOf(c4d.Ospline) or (temp.GetInfo() & c4d.OBJECT_SPLINE) or temp.IsInstanceOf(
-                c4d.Oline))):
+        if IsSplineCompatible(temp):
             if childSpline is None:
                 childSpline = temp
 
