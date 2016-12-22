@@ -15,9 +15,30 @@ Usage Instructions
 # Imports
 # =====================================================================================================================#
 
+import sys
 import c4d
 PLUGIN_ID = 98989801
 
+
+# =====================================================================================================================#
+# Debugging
+# =====================================================================================================================#
+
+def tracefunc(frame, event, arg, indent = [0]):
+    indent_width = 4
+
+    if event == "call":
+        indent[0] += indent_width
+        print " " * indent[0], frame.f_code.co_name
+    elif event == "return":
+        # print " " * indent[0], frame.f_code.co_name
+        indent[0] -= indent_width
+    return tracefunc
+
+debug = True
+
+if debug:
+    sys.settrace(tracefunc)
 
 # =====================================================================================================================#
 # Global Functions Definitions
@@ -77,7 +98,7 @@ def FinalSpline(source):
     if source is None:
         return None
 
-    # check is source can be threated as a spline
+    # check is source can be treated as a spline
     if (not source.IsInstanceOf(c4d.Oline)) and (not (source.GetInfo() & c4d.OBJECT_SPLINE)):
         return None
 
@@ -85,7 +106,7 @@ def FinalSpline(source):
         # it seems it's never hit
         source = source.GetDeformCache()
 
-    # return the spline is a procedural curve
+    # return the spline as a procedural curve
     if (not source.IsInstanceOf(c4d.Ospline)) and (source.GetRealSpline() is not None):
         return source.GetRealSpline()
 
@@ -374,7 +395,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
 
             if isinstance(result, list) and temp is not result[0] and result[0] is not None:
                 temp = result[0]
-                if (temp.GetType() == c4d.Onull):
+                if temp.GetType() == c4d.Onull:
                     result2 = c4d.utils.SendModelingCommand(command=c4d.MCOMMAND_JOIN, list=[temp], doc=doc)
 
                     if result2 is False:
@@ -415,7 +436,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
 
 if __name__ == "__main__":
     c4d.plugins.RegisterObjectPlugin(id=PLUGIN_ID,
-                                     str="Py-OffsetYSpline(DR)",
+                                     str="Py-OffsetYSpline",
                                      g=OffsetYSpline,
                                      description="OoffsetYSpline",
                                      icon=None,
