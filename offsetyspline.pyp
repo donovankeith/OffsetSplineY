@@ -33,15 +33,15 @@ PLUGIN_ID = 98989801
 # Debugging
 # =====================================================================================================================#
 
-def tracefunc(frame, event, arg, indent = [0]):
+def tracefunc(frame, event, arg, indent=[0]):
     indent_width = 4
 
     if event == "call":
-        indent[0] += indent_width
-        print " " * indent[0], frame.f_code.co_name
+        indent[0] += 1
+        print " " * indent[0] * indent_width, "<", frame.f_code.co_name, ">"
     elif event == "return":
-        # print " " * indent[0], frame.f_code.co_name
-        indent[0] -= indent_width
+        print " " * indent[0] * indent_width, "</", frame.f_code.co_name, ">"
+        indent[0] -= 1
     return tracefunc
 
 debug = True
