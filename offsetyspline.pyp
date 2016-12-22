@@ -410,13 +410,14 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             if temp is None:
                 return None
 
-            result = c4d.utils.SendModelingCommand(command=c4d.MCOMMAND_CURRENTSTATETOOBJECT, list=[temp], doc=doc)
+            result = c4d.utils.SendModelingCommand(command=c4d.MCOMMAND_MAKEEDITABLE, list=[temp], doc=doc)
+            # result = c4d.utils.SendModelingCommand(command=c4d.MCOMMAND_CURRENTSTATETOOBJECT, list=[temp], doc=doc)
 
             if result is False:
                 return None
 
             if isinstance(result, list) and temp is not result[0] and result[0] is not None:
-                temp = result[0]
+                temp = result[0].GetClone(c4d.COPYFLAGS_NO_ANIMATION)
                 if temp.GetType() == c4d.Onull:
                     result2 = c4d.utils.SendModelingCommand(command=c4d.MCOMMAND_JOIN, list=[temp], doc=doc)
 
