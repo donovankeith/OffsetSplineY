@@ -273,8 +273,12 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         return True
 
     def GetDimension(self, op, mp, rad):
-        """Return the Bounding Box of op"""
+        """Return the Bounding Box of op
 
+        I think:
+        mp & rad are passed by reference, so edit them in place, don't replace w/ a Vector()"""
+
+        # Reset to 0
         mp.x = 0
         mp.y = 0
         mp.z = 0
@@ -297,7 +301,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
     def CheckDirty(self, op, doc):
         """Returns True if op or its children are Dirty. (I think) It's only used for GetContour checks."""
 
-        if op is None or doc is None:
+        if (op is None) or (doc is None):
             return
 
         childDirty = 0
@@ -307,7 +311,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         if child is not None:
             childDirty = RecursiveCheckDirty(child)
 
-        if (childDirty != self._contourChildDirty):
+        if childDirty != self._contourChildDirty:
             op.SetDirty(c4d.DIRTYFLAGS_DATA)
 
         self._contourChildDirty = childDirty
