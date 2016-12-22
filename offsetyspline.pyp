@@ -3,20 +3,10 @@ Takes a child-spline as input and offset all its points on the y-axis by a speci
 
 Usage Instructions
 ------------------
-1. Save in a file called OffsetYSpline.pyp
-2. Locate it in the plugin folder
-3. Start Cinema
-4. Create a generating spline
-5. From the Plugin menu, select OffsetYSpline
-6. Set the generating spline as input child of the OffsetYSpline
-
-
-To Do
------
-
-- [ ] Clear Dead Object Error
-- [ ] Allow for child objects
-- [ ] Switch to Make Editable instead of CSTO where possible
+1. Add a `Circle` (or any spline primitive) to your scene.
+2. `Plugins > Py-OffsetYSpline`
+3. Make the `Circle` a child of `Py-OffsetYSpline`
+4. Adjust the `Offset` value in the attributes manager.
 
 """
 
@@ -384,7 +374,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             if temp is None:
                 return None
 
-            # result = c4d.utils.SendModelingCommand(command=c4d.MCOMMAND_MAKEEDITABLE, list=[temp], doc=doc)
+            # result = c4d.utils.SendModelingCommand(command=c4d`.MCOMMAND_MAKEEDITABLE, list=[temp], doc=doc)
             result = c4d.utils.SendModelingCommand(command=c4d.MCOMMAND_CURRENTSTATETOOBJECT, list=[temp], doc=doc)
 
             if result is False:
