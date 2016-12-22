@@ -16,6 +16,7 @@ Usage Instructions
 
 import sys
 import c4d
+
 PLUGIN_ID = 98989801
 
 
@@ -34,10 +35,12 @@ def tracefunc(frame, event, arg, indent=[0]):
         indent[0] -= 1
     return tracefunc
 
+
 debug = True
 
 if debug:
     sys.settrace(tracefunc)
+
 
 # =====================================================================================================================#
 # Global Functions Definitions
@@ -168,8 +171,8 @@ def RecurseOnChild(op):
         return None
 
     # skip deformers
-    isModifier = child_obj.GetInfo() & c4d.OBJECT_MODIFIER
-    if isModifier:
+    is_modifier = child_obj.GetInfo() & c4d.OBJECT_MODIFIER
+    if is_modifier:
         return None
 
     # check and return the first active child
@@ -214,6 +217,7 @@ def IsSplineCompatible(op):
         return False
 
     return IsSplineOrLine(op) or (op.GetInfo() & c4d.OBJECT_ISSPLINE)
+
 
 # =====================================================================================================================#
 #   Class Definitions
