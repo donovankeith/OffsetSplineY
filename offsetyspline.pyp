@@ -38,9 +38,9 @@ def tracefunc(frame, event, arg, indent = [0]):
 
     if event == "call":
         indent[0] += indent_width
-        print " " * indent[0], "<", frame.f_code.co_name, ">"
+        print " " * indent[0], frame.f_code.co_name
     elif event == "return":
-        print " " * indent[0], "</", frame.f_code.co_name, ">"
+        # print " " * indent[0], frame.f_code.co_name
         indent[0] -= indent_width
     return tracefunc
 
@@ -102,20 +102,13 @@ def CopySplineParamsValue(sourceSpline, destSpline):
 
 
 def FinalSpline(source):
-    """Global function responsible to return the final representation of the spline
-
-    Returns:
-        None if not a spline
-        Deformed RealSpline if it exists
-        Spline itself
-        Realspline representation if it's a primitive spline
-        """
+    """Global function responsible to return the final representation of the spline"""
 
     if source is None:
         return None
 
     # check is source can be treated as a spline
-    if not IsSplineOrLine(source):
+    if (not source.IsInstanceOf(c4d.Oline)) and (not (source.GetInfo() & c4d.OBJECT_SPLINE)):
         return None
 
     if source.GetDeformCache() is not None:
@@ -130,14 +123,13 @@ def FinalSpline(source):
 
 
 def OffsetSpline(inputSpline, offsetValue):
-    """Global function responsible for modifying the spline
-    """
+    """Global function responsible for modifying the spline"""
 
     if inputSpline is None:
         return None
 
     # just return if the input object doesn't belong to spline or line type
-    if not IsSplineOrLine(inputSpline):
+    if not inputSpline.IsInstanceOf(c4d.Ospline) and not inputSpline.IsInstanceOf(c4d.Oline):
         return None
 
     # local matrix for updating the point position in parent space
@@ -218,34 +210,6 @@ def RecursiveCheckDirty(op):
         res += RecursiveCheckDirty(nextObj)
 
     return res
-
-def IsSplineOrLine(op):
-    """Returns True if op is a Spline or Line"""
-
-    if op is None:
-        return
-
-    if op.IsInstanceOf(c4d.Ospline):
-        return True
-
-    if op.IsInstanceOf(c4d.Oline):
-        return True
-
-    return False
-
-def IsSplineCompatible(op):
-    """Returns True if op is a spline or could be converted into one"""
-
-    if op is None:
-        return
-
-    if IsSplineOrLine(op):
-        return True
-
-    if op.GetInfo() & c4d.OBJECT_ISSPLINE:
-        return True
-
-    return False
 
 
 # =====================================================================================================================#
@@ -360,7 +324,9 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         dirty |= cloneDirty
 
         # recursively check the dirty flag for the children (deformers or other generators)
-        if temp is not None and IsSplineCompatible(temp):
+        if temp is not None and (
+                temp.IsInstanceOf(c4d.Ospline) or (temp.GetInfo() & c4d.OBJECT_ISSPLINE) or temp.IsInstanceOf(
+                c4d.Oline)):
             childDirty = RecursiveCheckDirty(child)
             if childSpline is None:
                 childSpline = temp
@@ -451,7 +417,9 @@ class OffsetYSpline(c4d.plugins.ObjectData):
                     if isinstance(result2, list) and result2[0] is not None and temp is not result2[0]:
                         temp = result2[0]
 
-        if (temp is not None) and IsSplineCompatible(temp):
+        if (temp is not None and (
+                temp.IsInstanceOf(c4d.Ospline) or (temp.GetInfo() & c4d.OBJECT_SPLINE) or temp.IsInstanceOf(
+                c4d.Oline))):
             if childSpline is None:
                 childSpline = temp
 
