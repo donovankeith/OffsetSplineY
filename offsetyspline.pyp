@@ -177,7 +177,7 @@ def RecurseOnChild(op):
     if childObj is None:
         return None
 
-        # skip deformers
+    # skip deformers
     isModifier = childObj.GetInfo() & c4d.OBJECT_MODIFIER
     if isModifier:
         return None
@@ -246,32 +246,6 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         bc.SetInt32(c4d.PY_OFFSETYSPLINE_OFFSET, 100)
 
         return True
-
-    def GetDimension(self, op, mp, rad):
-        """Return the Bounding Box of op
-
-        I think:
-        mp & rad are passed by reference, so edit them in place, don't replace w/ a Vector()"""
-
-        # Reset to 0
-        mp.x = 0
-        mp.y = 0
-        mp.z = 0
-        rad.x = 0
-        rad.y = 0
-        rad.z = 0
-
-        if op is None:
-            return
-
-        bc = op.GetDataInstance()
-        if op.GetDown() is not None:
-            rad.x = op.GetDown().GetRad().x
-            rad.y = op.GetDown().GetRad().y
-            rad.z = op.GetDown().GetRad().z
-            mp.x = op.GetMg().off.x
-            mp.y = op.GetMg().off.y + bc.GetFloat(c4d.PY_OFFSETYSPLINE_OFFSET)
-            mp.z = op.GetMg().off.z
 
     def CheckDirty(self, op, doc):
         """Returns True if op or its children are Dirty. (I think) It's only used for GetContour checks."""
