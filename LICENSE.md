@@ -2,6 +2,7 @@ The MIT License (MIT)
 =====================
 
 Copyright © `<2016>` `<Donovan Keith>`
+Copyright © `<2016>` `<MAXON Gmbh>`
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
