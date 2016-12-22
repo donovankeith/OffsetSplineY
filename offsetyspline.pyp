@@ -9,6 +9,15 @@ Usage Instructions
 4. Create a generating spline
 5. From the Plugin menu, select OffsetYSpline
 6. Set the generating spline as input child of the OffsetYSpline
+
+
+To Do
+-----
+
+- [ ] Clear Dead Object Error
+- [ ] Allow for child objects
+- [ ] Switch to Make Editable instead of CSTO where possible
+
 """
 
 # =====================================================================================================================#
