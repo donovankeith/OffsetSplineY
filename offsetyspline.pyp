@@ -186,7 +186,7 @@ def RecursiveCheckDirty(op):
     next_obj = op.GetNext()
     child_obj = op.GetDown()
 
-    res += cur_obj.GetDirty(c4d.DIRTYFLAGS_DATA | c4d.DIRTYFLAGS_MATRIX)
+    res += cur_obj.GetDirty(c4d.DIRTYFLAGS_DATA | c4d.DIRTYFLAGS_MATRIX | c4d.DIRTYFLAGS_CACHE)
 
     if child_obj is not None:
         res += RecursiveCheckDirty(child_obj)
