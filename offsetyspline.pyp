@@ -278,7 +278,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         cache = op.GetCache()
         bc = op.GetDataInstance()
         if bc is None:
-            return c4d.BaseObject(c4d.Onull)
+            return
         offset_value = bc.GetFloat(c4d.PY_OFFSETYSPLINE_OFFSET)
 
         # look for the first enabled child in order to support hierarchical
@@ -286,7 +286,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         if child is None:
             self._child_dirty = -1
             self._countour_child_dirty = -1
-            return c4d.BaseObject(c4d.Onull)
+            return
 
         # Store now the closure state of the child cause child will be later on overwritten
         is_child_closed = IsClosed(child.GetRealSpline())
@@ -321,15 +321,16 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         self._child_dirty = child_dirty
 
         if (not dirty) and (cache is not None):
-            return cache.GetClone(c4d.COPYFLAGS_NO_ANIMATION)
+            cache_clone = cache.GetClone(c4d.COPYFLAGS_NO_ANIMATION)
+            return cache_clone
 
         if child_spline is None:
-            return c4d.BaseObject(c4d.Onull)
+            return
 
         # operate the spline modification
         result_spline = OffsetSpline(FinalSpline(child_spline), offset_value)
         if result_spline is None:
-            return c4d.BaseObject(c4d.Onull)
+            return
 
         # restore the closing status of the spline
         SetClosed(result_spline, is_child_closed)
