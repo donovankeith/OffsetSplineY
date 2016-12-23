@@ -104,15 +104,7 @@ def FinalSpline(source):
     if not IsSplineCompatible(source):
         return None
 
-    if source.GetDeformCache() is not None:
-        # it seems it's never hit
-        source = source.GetDeformCache()
-
-    # return the spline as a procedural curve
-    if (not source.IsInstanceOf(c4d.Ospline)) and (source.GetRealSpline() is not None):
-        return source.GetRealSpline()
-
-    return source
+    return source.GetRealSpline()
 
 
 def OffsetSpline(input_spline, offset_value):
@@ -131,6 +123,8 @@ def OffsetSpline(input_spline, offset_value):
     # local matrix for updating the tangents direction and scaling in parent space
     input_scale_rotate = input_spline.GetMl()
     input_scale_rotate.off = c4d.Vector(0, 0, 0)
+
+    print "input_spline: ", input_spline
 
     # retrieve child points count and type
     point_count = input_spline.GetPointCount()
@@ -262,7 +256,10 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         self._countour_child_dirty = child_dirty
 
     def GetVirtualObjects(self, op, hh):
-        """Return the result of the generator."""
+        """Return the result of the generator.
+
+        Responsible for hiding the child objects
+        """
 
         if (op is None) or (hh is None):
             return None
@@ -288,7 +285,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             self._countour_child_dirty = -1
             return
 
-        # Store now the closure state of the child cause child will be later on overwritten
+        # Store whether the spline is open/closed as this will be overwritten later
         is_child_closed = IsClosed(child.GetRealSpline())
 
         # Use the GetHierarchyClone and the GetAndCheckHierarchyClone to operate as a two-step
@@ -346,6 +343,9 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         return result_spline
 
     def GetContour(self, op, doc, lod, bt):
+        """Returns a Spline version of the object, called when GetRealSpline() is used.
+        """
+
         if op is None:
             return None
 
@@ -374,33 +374,23 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         isChildClosed = IsClosed(child.GetRealSpline())
 
         # Emulate GetHierarchyClone in GetContour by using SendModelingCommand
-        temp = child
-        if temp is not None:
-            temp = temp.GetClone(c4d.COPYFLAGS_NO_ANIMATION)
+        temp = None
+        if child is not None:
+            temp = child.GetClone(c4d.COPYFLAGS_NO_ANIMATION)
             if temp is None:
                 return None
 
-            result = c4d.utils.SendModelingCommand(command=c4d.MCOMMAND_CURRENTSTATETOOBJECT, list=[temp], doc=doc)
-
+            result = c4d.utils.SendModelingCommand(command=c4d.MCOMMAND_MAKEEDITABLE, list=[temp], doc=doc)
             if result is False:
                 return None
 
-            if isinstance(result, list) and temp is not result[0] and result[0] is not None:
-                temp = result[0]
-                if temp.GetType() == c4d.Onull:
-                    result2 = c4d.utils.SendModelingCommand(command=c4d.MCOMMAND_JOIN, list=[temp], doc=doc)
-
-                    if result2 is False:
-                        return None
-
-                    if isinstance(result2, list) and result2[0] is not None and temp is not result2[0]:
-                        temp = result2[0]
-
-        if IsSplineCompatible(temp):
-            child_spline = temp
+            if IsSplineCompatible(temp):
+                child_spline = temp
 
         if child_spline is None:
             return None
+
+        print "child_spline: ", child_spline
 
         # operate the spline modification
         result_spline = OffsetSpline(FinalSpline(child_spline), offsetValue)
