@@ -36,7 +36,7 @@ def tracefunc(frame, event, arg, indent=[0]):
     return tracefunc
 
 
-debug = True
+debug = False
 
 if debug:
     sys.settrace(tracefunc)
@@ -123,8 +123,6 @@ def OffsetSpline(input_spline, offset_value):
     # local matrix for updating the tangents direction and scaling in parent space
     input_scale_rotate = input_spline.GetMl()
     input_scale_rotate.off = c4d.Vector(0, 0, 0)
-
-    print "input_spline: ", input_spline
 
     # retrieve child points count and type
     point_count = input_spline.GetPointCount()
@@ -389,8 +387,6 @@ class OffsetYSpline(c4d.plugins.ObjectData):
 
         if child_spline is None:
             return None
-
-        print "child_spline: ", child_spline
 
         # operate the spline modification
         result_spline = OffsetSpline(FinalSpline(child_spline), offsetValue)
