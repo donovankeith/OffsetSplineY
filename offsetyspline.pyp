@@ -360,7 +360,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         bc = op.GetDataInstance()
         if bc is None:
             return None
-        offsetValue = bc.GetFloat(c4d.PY_OFFSETYSPLINE_OFFSET)
+        offset_value = bc.GetFloat(c4d.PY_OFFSETYSPLINE_OFFSET)
 
         child = RecurseOnChild(op)
         if child is None:
@@ -369,7 +369,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             return None
 
         # Store whether the spline is open/closed as this will be overwritten later
-        isChildClosed = IsClosed(child.GetRealSpline())
+        is_child_closed = IsClosed(child.GetRealSpline())
 
         # Emulate GetHierarchyClone in GetContour by using SendModelingCommand
         temp = None
@@ -389,12 +389,12 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             return None
 
         # operate the spline modification
-        result_spline = OffsetSpline(FinalSpline(child_spline), offsetValue)
+        result_spline = OffsetSpline(FinalSpline(child_spline), offset_value)
         if result_spline is None:
             return None
 
         # restore the closing status of the spline
-        SetClosed(result_spline, isChildClosed)
+        SetClosed(result_spline, is_child_closed)
 
         # copy the spline parameters value
         CopySplineParamsValue(child_spline, result_spline)
