@@ -370,10 +370,10 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             self._countour_child_dirty = 0
             return None
 
-        # Store now the closure state of the child cause child will be later on overwritten
+        # Store whether the spline is open/closed as this will be overwritten later
         isChildClosed = IsClosed(child.GetRealSpline())
 
-        # emulate the GetHierarchyClone in the GetContour by using the SendModelingCommand
+        # Emulate GetHierarchyClone in GetContour by using SendModelingCommand
         temp = child
         if temp is not None:
             temp = temp.GetClone(c4d.COPYFLAGS_NO_ANIMATION)
