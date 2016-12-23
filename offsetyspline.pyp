@@ -264,7 +264,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
     def GetVirtualObjects(self, op, hh):
         """Return the result of the generator."""
 
-        if op is None or hh is None:
+        if (op is None) or (hh is None):
             return None
 
         child = None
@@ -307,8 +307,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         # recursively check the dirty flag for the children (deformers or other generators)
         if IsSplineCompatible(temp):
             child_dirty = RecursiveCheckDirty(child)
-            if child_spline is None:
-                child_spline = temp
+            child_spline = temp
 
         child.Touch()
 
@@ -398,8 +397,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
                         temp = result2[0]
 
         if IsSplineCompatible(temp):
-            if child_spline is None:
-                child_spline = temp
+            child_spline = temp
 
         if child_spline is None:
             return None
