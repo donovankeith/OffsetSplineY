@@ -36,11 +36,12 @@ def tracefunc(frame, event, arg, indent=[0]):
     return tracefunc
 
 
-debug = True
+trace = False
 
-if debug:
+if trace:
     sys.settrace(tracefunc)
 
+debug = True
 
 # =====================================================================================================================#
 # Global Functions Definitions
@@ -299,10 +300,8 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             result_ghc = op.GetAndCheckHierarchyClone(hh, child, c4d.HIERARCHYCLONEFLAGS_ASSPLINE, False)
 
         if result_ghc is not None:
-            clone_dirty = result_ghc["dirty"]
+            clone_dirty = result_ghc["dirty"]  # BUG: Always True for some Reason
             temp = result_ghc["clone"]
-
-        dirty |= clone_dirty
 
         # recursively check the dirty flag for the children (deformers or other generators)
         if IsSplineCompatible(temp):
@@ -352,6 +351,9 @@ class OffsetYSpline(c4d.plugins.ObjectData):
 
         if doc is None:
             doc = op.GetDocument()
+
+        if (doc is None) or (not doc.IsAlive()):
+            doc = c4d.documents.GetActiveDocument()  # Is this safe in a render context?!
 
         if doc is None:
             return None
