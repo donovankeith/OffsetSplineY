@@ -98,7 +98,6 @@ def SetClosed(spline, value):
 
 def IsClosed(spline):
     """Global function responsible to check the close status of a spline"""
-
     if spline is None:
         return False
 
@@ -208,7 +207,7 @@ def OffsetSpline(input_spline, offset_value):
     return result_spline
 
 
-def RecurseOnChild(op):
+def GetFirstActiveChild(op):
     """Global function responsible to return the first enabled object in a hierarchy"""
 
     if op is None:
@@ -227,7 +226,7 @@ def RecurseOnChild(op):
     if child_obj.GetDeformMode():
         return child_obj
     else:
-        return RecurseOnChild(child_obj)
+        return GetFirstActiveChild(child_obj)
 
 
 def RecursiveCheckDirty(op):
@@ -300,6 +299,9 @@ class OffsetYSpline(c4d.plugins.ObjectData):
     def CheckDirty(self, op, doc):
         """Returns True if op or its children are Dirty. (I think) It's only used for GetContour checks."""
 
+
+        print "CheckDirty(%s)" % op.GetName()
+
         if (op is None) or (doc is None):
             return
 
@@ -314,6 +316,36 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             op.SetDirty(c4d.DIRTYFLAGS_DATA)
 
         self._contour_child_dirty = child_dirty
+
+    def GetResultSpline(self, child, child_spline, offset_value):
+        if (child is None) or (child_spline is None) or (offset_value is None):
+            return None
+
+        # operate the spline modification
+        result_spline = OffsetSpline(child_spline, offset_value)
+        if result_spline is None:
+            return None
+
+        # For some reason it's very important that the next lines be here.
+        # They dictate whether deeply nested clones will be updated appropriately.
+        # Not sure if it's IsClosed() or GetRealSpline() that's doing it
+        # Okay, it looks like it has something to do with GetRealSpline() updating the results of GetDirty for GetContour
+        # Store now the closure state of the child cause child will be later on overwritten
+        is_child_closed = IsClosed(child.GetRealSpline())  # child_ghc_clone is BaseObject instead of SplineObject
+
+        # restore the closing status of the spline
+        SetClosed(result_spline, is_child_closed)
+
+        # copy the spline tags
+        child_spline.CopyTagsTo(result_spline, True, c4d.NOTOK, c4d.NOTOK)
+
+        # copy the spline parameters value
+        CopySplineParamsValue(child_spline, result_spline)
+
+        # notify about the generator update
+        result_spline.Message(c4d.MSG_UPDATE)
+
+        return result_spline
 
     @profile
     def GetVirtualObjects(self, op, hh):
@@ -334,7 +366,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         offset_value = bc.GetFloat(c4d.PY_OFFSETYSPLINE_OFFSET)
 
         # look for the first enabled child in order to support hierarchical
-        child = RecurseOnChild(op)
+        child = GetFirstActiveChild(op)
         if child is None:
             self.ResetDirtySums()
             return None
@@ -359,7 +391,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
 
         dirty |= op.IsDirty(c4d.DIRTYFLAGS_DATA)
         if dirty:
-            print "op is dirty"
+            print op.GetName() + " is dirty"
 
         # compare the dirtyness of local and member variable and accordingly update the generator's
         # dirty status and the member variable value
@@ -367,7 +399,6 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         dirty |= (self._child_dirty != child_dirty)
 
         print "self._child_dirty = %s   |   child_dirty = %s" % (self._child_dirty, child_dirty)
-
         if child_dirty != child_dirty:
             print "child is dirty"
 
@@ -377,35 +408,11 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             cache_clone = cache.GetClone(c4d.COPYFLAGS_NO_ANIMATION)  # We clone so that the cache is always alive
             return cache_clone
 
-        if child_spline is None:
-            return None
-
-        # operate the spline modification
-        result_spline = OffsetSpline(child_spline, offset_value)
-        if result_spline is None:
-            return None
-
-        # For some reason it's very important that the next lines be here.
-        # They dictate whether deeply nested clones will be updated appropriately.
-        # Not sure if it's IsClosed() or GetRealSpline() that's doing it
-        # Store now the closure state of the child cause child will be later on overwritten
-        is_child_closed = IsClosed(child.GetRealSpline())  # child_ghc_clone is BaseObject instead of SplineObject
-
-        # restore the closing status of the spline
-        SetClosed(result_spline, is_child_closed)
-
-        # copy the spline tags
-        child_spline.CopyTagsTo(result_spline, True, c4d.NOTOK, c4d.NOTOK)
-
-        # copy the spline parameters value
-        CopySplineParamsValue(child_spline, result_spline)
-
-        # notify about the generator update
-        result_spline.Message(c4d.MSG_UPDATE)
-
-        return result_spline
+        return self.GetResultSpline(child, child_spline, offset_value)
 
     def GetContour(self, op, doc, lod, bt):
+        print "GetContour(%s)" % op.GetName()
+
         if op is None:
             return None
 
@@ -423,7 +430,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             return None
         offset_value = bc.GetFloat(c4d.PY_OFFSETYSPLINE_OFFSET)
 
-        child = RecurseOnChild(op)
+        child = GetFirstActiveChild(op)
         if child is None:
             self.ResetDirtySums()
             return None
@@ -457,24 +464,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         if IsSplineCompatible(child_csto):
             child_spline = FinalSpline(child_csto)
 
-        if child_spline is None:
-            return None
-
-        # operate the spline modification
-        result_spline = OffsetSpline(child_spline, offset_value)
-        if result_spline is None:
-            return None
-
-        # restore the closing status of the spline
-        SetClosed(result_spline, is_child_closed)
-
-        # copy the spline parameters value
-        CopySplineParamsValue(child_spline, result_spline)
-
-        # notify about the generator update
-        result_spline.Message(c4d.MSG_UPDATE)
-
-        return result_spline
+        return self.GetResultSpline(child, child_spline, offset_value)
 
 
 # =====================================================================================================================#
