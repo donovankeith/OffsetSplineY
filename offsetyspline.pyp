@@ -149,8 +149,10 @@ def FinalSpline(source):
         source = source.GetDeformCache()
 
     # return the spline as a procedural curve
-    if (not source.IsInstanceOf(c4d.Ospline)) and (source.GetRealSpline() is not None):
-        return source.GetRealSpline()
+    if not source.IsInstanceOf(c4d.Ospline):
+        real_spline = source.GetRealSpline()
+        if real_spline is not None:
+            return real_spline
 
     return source
 
