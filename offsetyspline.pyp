@@ -36,7 +36,7 @@ def tracefunc(frame, event, arg, indent=[0]):
     return tracefunc
 
 
-trace = False
+trace = True
 
 if trace:
     sys.settrace(tracefunc)
@@ -289,9 +289,6 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             self._countour_child_dirty = -1
             return
 
-        # Store now the closure state of the child cause child will be later on overwritten
-        is_child_closed = IsClosed(child.GetRealSpline())
-
         # Use the GetHierarchyClone and the GetAndCheckHierarchyClone to operate as a two-step
         # GetHierarchyClone operates when passing a bool reference in the first step to check
         # the dirtyness and a nullptr on a second step to operate the real clone
@@ -330,6 +327,9 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         result_spline = OffsetSpline(FinalSpline(child_spline), offset_value)
         if result_spline is None:
             return
+
+        # Store now the closure state of the child cause child will be later on overwritten
+        is_child_closed = IsClosed(child.GetRealSpline())
 
         # restore the closing status of the spline
         SetClosed(result_spline, is_child_closed)
