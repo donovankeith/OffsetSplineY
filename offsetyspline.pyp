@@ -329,20 +329,6 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             self._countour_child_dirty = -1
             return
 
-        child.Touch()
-
-        dirty |= op.IsDirty(c4d.DIRTYFLAGS_DATA)
-
-        # compare the dirtyness of local and member variable and accordingly update the generator's
-        # dirty status and the member variable value
-        # check is &= or |=
-        dirty |= self._child_dirty != child_dirty
-        self._child_dirty = child_dirty
-
-        if (not dirty) and (cache is not None):
-            cache_clone = cache.GetClone(c4d.COPYFLAGS_NO_ANIMATION)
-            return cache_clone
-
         # Use the GetHierarchyClone and the GetAndCheckHierarchyClone to operate as a two-step
         # GetHierarchyClone operates when passing a bool reference in the first step to check
         # the dirtyness and a nullptr on a second step to operate the real clone
@@ -359,6 +345,20 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             child_dirty = RecursiveCheckDirty(child)
             if child_spline is None:
                 child_spline = temp
+
+        child.Touch()
+
+        dirty |= op.IsDirty(c4d.DIRTYFLAGS_DATA)
+
+        # compare the dirtyness of local and member variable and accordingly update the generator's
+        # dirty status and the member variable value
+        # check is &= or |=
+        dirty |= self._child_dirty != child_dirty
+        self._child_dirty = child_dirty
+
+        if (not dirty) and (cache is not None):
+            cache_clone = cache.GetClone(c4d.COPYFLAGS_NO_ANIMATION)
+            return cache_clone
 
         if child_spline is None:
             return
