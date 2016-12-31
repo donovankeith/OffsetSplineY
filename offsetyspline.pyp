@@ -321,8 +321,8 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         # look for the first enabled child in order to support hierarchical
         child = RecurseOnChild(op)
         if child is None:
-            self._child_dirty = -1
-            self._contour_child_dirty = -1
+            self._child_dirty = 0
+            self._contour_child_dirty = 0
             return
 
         # Get the child objects as splines so we can manipulate them.
@@ -407,31 +407,30 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         is_child_closed = IsClosed(child.GetRealSpline())
 
         # emulate the GetHierarchyClone in the GetContour by using the SendModelingCommand
-        temp = child
-        if temp is not None:
-            temp = temp.GetClone(c4d.COPYFLAGS_NO_ANIMATION)
-            if temp is None:
+        child_clone = None
+        if child is not None:
+            child_clone = child.GetClone(c4d.COPYFLAGS_NO_ANIMATION)
+            if child_clone is None:
                 return None
 
-            result = c4d.utils.SendModelingCommand(command=c4d.MCOMMAND_CURRENTSTATETOOBJECT, list=[temp], doc=doc)
-
-            if result is False:
+            csto_result = c4d.utils.SendModelingCommand(command=c4d.MCOMMAND_CURRENTSTATETOOBJECT, list=[child_clone], doc=doc)
+            if csto_result is False:
                 return None
 
-            if isinstance(result, list) and temp is not result[0] and result[0] is not None:
-                temp = result[0]
-                if temp.GetType() == c4d.Onull:
-                    result2 = c4d.utils.SendModelingCommand(command=c4d.MCOMMAND_JOIN, list=[temp], doc=doc)
+            if isinstance(csto_result, list) and child_clone is not csto_result[0] and csto_result[0] is not None:
+                child_clone = csto_result[0]
+                if child_clone.GetType() == c4d.Onull:
+                    join_result = c4d.utils.SendModelingCommand(command=c4d.MCOMMAND_JOIN, list=[child_clone], doc=doc)
 
-                    if result2 is False:
+                    if join_result is False:
                         return None
 
-                    if isinstance(result2, list) and result2[0] is not None and temp is not result2[0]:
-                        temp = result2[0]
+                    if isinstance(join_result, list) and join_result[0] is not None and child_clone is not join_result[0]:
+                        child_clone = join_result[0]
 
         child_spline = None
-        if IsSplineCompatible(temp):
-            child_spline = temp
+        if IsSplineCompatible(child_clone):
+            child_spline = child_clone
 
         if child_spline is None:
             return None
