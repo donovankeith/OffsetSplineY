@@ -266,7 +266,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
     def __init__(self):
         """Create member variables"""
 
-        self._countour_child_dirty = -1
+        self._contour_child_dirty = -1
         self._child_dirty = -1
 
     def Init(self, op):
@@ -296,10 +296,10 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         if child is not None:
             child_dirty = RecursiveCheckDirty(child)
 
-        if child_dirty != self._countour_child_dirty:
+        if child_dirty != self._contour_child_dirty:
             op.SetDirty(c4d.DIRTYFLAGS_DATA)
 
-        self._countour_child_dirty = child_dirty
+        self._contour_child_dirty = child_dirty
 
     @profile
     def GetVirtualObjects(self, op, hh):
@@ -322,7 +322,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         child = RecurseOnChild(op)
         if child is None:
             self._child_dirty = -1
-            self._countour_child_dirty = -1
+            self._contour_child_dirty = -1
             return
 
         # Get the child objects as splines so we can manipulate them.
@@ -363,7 +363,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             return
 
         # Store now the closure state of the child cause child will be later on overwritten
-        is_child_closed = IsClosed(child.GetRealSpline())
+        is_child_closed = IsClosed(child.GetRealSpline())  # child_ghc_clone is BaseObject instead of SplineObject
 
         # restore the closing status of the spline
         SetClosed(result_spline, is_child_closed)
@@ -392,23 +392,19 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         if doc is None:
             return None
 
-        child = None
-        child_spline = None
-        result_spline = None
-
         bc = op.GetDataInstance()
         if bc is None:
             return None
-        offsetValue = bc.GetFloat(c4d.PY_OFFSETYSPLINE_OFFSET)
+        offset_value = bc.GetFloat(c4d.PY_OFFSETYSPLINE_OFFSET)
 
         child = RecurseOnChild(op)
         if child is None:
             self._child_dirty = 0
-            self._countour_child_dirty = 0
+            self._contour_child_dirty = 0
             return None
 
         # Store now the closure state of the child cause child will be later on overwritten
-        isChildClosed = IsClosed(child.GetRealSpline())
+        is_child_closed = IsClosed(child.GetRealSpline())
 
         # emulate the GetHierarchyClone in the GetContour by using the SendModelingCommand
         temp = child
@@ -433,20 +429,20 @@ class OffsetYSpline(c4d.plugins.ObjectData):
                     if isinstance(result2, list) and result2[0] is not None and temp is not result2[0]:
                         temp = result2[0]
 
+        child_spline = None
         if IsSplineCompatible(temp):
-            if child_spline is None:
-                child_spline = temp
+            child_spline = temp
 
         if child_spline is None:
             return None
 
         # operate the spline modification
-        result_spline = OffsetSpline(FinalSpline(child_spline), offsetValue)
+        result_spline = OffsetSpline(FinalSpline(child_spline), offset_value)
         if result_spline is None:
             return None
 
         # restore the closing status of the spline
-        SetClosed(result_spline, isChildClosed)
+        SetClosed(result_spline, is_child_closed)
 
         # copy the spline parameters value
         CopySplineParamsValue(child_spline, result_spline)
