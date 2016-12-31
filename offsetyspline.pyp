@@ -424,9 +424,6 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             self.ResetDirtySums()
             return None
 
-        # Store now the closure state of the child cause child will be later on overwritten
-        is_child_closed = IsClosed(child.GetRealSpline())
-
         child_csto = self.CurrentStateToObject(child, doc)
 
         child_spline = None
