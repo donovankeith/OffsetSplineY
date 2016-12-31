@@ -407,7 +407,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         is_child_closed = IsClosed(child.GetRealSpline())
 
         # emulate the GetHierarchyClone in the GetContour by using the SendModelingCommand
-        child_clone = None
+        child_csto = None
         if child is not None:
             child_clone = child.GetClone(c4d.COPYFLAGS_NO_ANIMATION)
             if child_clone is None:
@@ -418,19 +418,19 @@ class OffsetYSpline(c4d.plugins.ObjectData):
                 return None
 
             if isinstance(csto_result, list) and child_clone is not csto_result[0] and csto_result[0] is not None:
-                child_clone = csto_result[0]
-                if child_clone.GetType() == c4d.Onull:
+                child_csto = csto_result[0]
+                if child_csto.GetType() == c4d.Onull:
                     join_result = c4d.utils.SendModelingCommand(command=c4d.MCOMMAND_JOIN, list=[child_clone], doc=doc)
 
                     if join_result is False:
                         return None
 
                     if isinstance(join_result, list) and join_result[0] is not None and child_clone is not join_result[0]:
-                        child_clone = join_result[0]
+                        child_csto = join_result[0]
 
         child_spline = None
-        if IsSplineCompatible(child_clone):
-            child_spline = child_clone
+        if IsSplineCompatible(child_csto):
+            child_spline = child_csto
 
         if child_spline is None:
             return None
