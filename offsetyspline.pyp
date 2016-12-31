@@ -314,6 +314,8 @@ class OffsetYSpline(c4d.plugins.ObjectData):
     def GetVirtualObjects(self, op, hh):
         """Return the result of the generator."""
 
+        print "GVO(%s)" % op.GetName()
+
         if op is None or hh is None:
             return None
 
@@ -330,8 +332,8 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         # look for the first enabled child in order to support hierarchical
         child = RecurseOnChild(op)
         if child is None:
-            self._child_dirty = 0
-            self._contour_child_dirty = 0
+            self._child_dirty = -1
+            self._contour_child_dirty = -1
             return
 
         # Get the child objects as splines so we can manipulate them.
@@ -352,15 +354,20 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         # child.Touch()  # Doesn't seem to be necessary
 
         dirty |= op.IsDirty(c4d.DIRTYFLAGS_DATA)
+        if dirty:
+            print "op is dirty"
 
         # compare the dirtyness of local and member variable and accordingly update the generator's
         # dirty status and the member variable value
         # check is &= or |=
-        dirty |= self._child_dirty != child_dirty
+        dirty |= (self._child_dirty != child_dirty)
+        if child_dirty:
+            print "child is dirty"
+
         self._child_dirty = child_dirty
 
         if (not dirty) and (cache is not None):
-            cache_clone = cache.GetClone(c4d.COPYFLAGS_NO_ANIMATION)
+            cache_clone = cache.GetClone(c4d.COPYFLAGS_NO_ANIMATION)  # We clone so that the cache is always alive
             return cache_clone
 
         if child_spline is None:
@@ -402,8 +409,8 @@ class OffsetYSpline(c4d.plugins.ObjectData):
 
         child = RecurseOnChild(op)
         if child is None:
-            self._child_dirty = 0
-            self._contour_child_dirty = 0
+            self._child_dirty = -1
+            self._contour_child_dirty = -1
             return None
 
         # emulate the GetHierarchyClone in the GetContour by using the SendModelingCommand
