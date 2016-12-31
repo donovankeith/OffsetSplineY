@@ -316,12 +316,6 @@ class OffsetYSpline(c4d.plugins.ObjectData):
 
         self._contour_child_dirty = child_dirty
 
-    def EmptySpline(self):
-        point_count = 0
-        spline_type = 4  # Bezier
-
-        return c4d.SplineObject(point_count, spline_type)
-
     @profile
     def GetVirtualObjects(self, op, hh):
         """Return the result of the generator."""
@@ -329,23 +323,22 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         print "GVO(%s)" % op.GetName()
 
         if op is None or hh is None:
-            return self.EmptySpline()
+            return None
 
         child_spline = None
         dirty = False
-        child_dirty = -1
 
         cache = op.GetCache()
         bc = op.GetDataInstance()
         if bc is None:
-            return self.EmptySpline()
+            return None
         offset_value = bc.GetFloat(c4d.PY_OFFSETYSPLINE_OFFSET)
 
         # look for the first enabled child in order to support hierarchical
         child = RecurseOnChild(op)
         if child is None:
             self.ResetDirtySums()
-            return self.EmptySpline()
+            return None
 
         # Get the child objects as splines so we can manipulate them.
         # Note: Was a 2-step process in the example, but the first step always seemed to return Null
@@ -357,12 +350,13 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             child_ghc_clone = result_ghc["clone"]
 
         # recursively check the dirty flag for the children (deformers or other generators)
+        child_dirty = 0
         if IsSplineCompatible(child_ghc_clone):
             child_dirty = RecursiveCheckDirty(child)
             if child_spline is None:
                 child_spline = child_ghc_clone
 
-        # child.Touch()  # Doesn't seem to be necessary
+        child.Touch()  # Doesn't seem to be necessary
 
         dirty |= op.IsDirty(c4d.DIRTYFLAGS_DATA)
         if dirty:
@@ -372,7 +366,10 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         # dirty status and the member variable value
         # check is &= or |=
         dirty |= (self._child_dirty != child_dirty)
-        if child_dirty:
+
+        print "self._child_dirty = %s   |   child_dirty = %s" % (self._child_dirty, child_dirty)
+
+        if child_dirty != child_dirty:
             print "child is dirty"
 
         self._child_dirty = child_dirty
@@ -382,12 +379,12 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             return cache_clone
 
         if child_spline is None:
-            return self.EmptySpline()
+            return None
 
         # operate the spline modification
         result_spline = OffsetSpline(FinalSpline(child_spline), offset_value)
         if result_spline is None:
-            return self.EmptySpline()
+            return None
 
         # copy the spline tags
         child_spline.CopyTagsTo(result_spline, True, c4d.NOTOK, c4d.NOTOK)
@@ -402,7 +399,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
 
     def GetContour(self, op, doc, lod, bt):
         if op is None:
-            return self.EmptySpline()
+            return None
 
         if doc is None:
             doc = op.GetDocument()
@@ -411,28 +408,28 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             doc = c4d.documents.GetActiveDocument()  # Is this safe in a render context?!
 
         if doc is None:
-            return self.EmptySpline()
+            return None
 
         bc = op.GetDataInstance()
         if bc is None:
-            return self.EmptySpline()
+            return None
         offset_value = bc.GetFloat(c4d.PY_OFFSETYSPLINE_OFFSET)
 
         child = RecurseOnChild(op)
         if child is None:
             self.ResetDirtySums()
-            return self.EmptySpline()
+            return None
 
         # emulate the GetHierarchyClone in the GetContour by using the SendModelingCommand
         child_csto = None
         if child is not None:
             child_clone = child.GetClone(c4d.COPYFLAGS_NO_ANIMATION)
             if child_clone is None:
-                return self.EmptySpline()
+                return None
 
             csto_result = c4d.utils.SendModelingCommand(command=c4d.MCOMMAND_CURRENTSTATETOOBJECT, list=[child_clone], doc=doc)
             if csto_result is False:
-                return self.EmptySpline()
+                return None
 
             if isinstance(csto_result, list) and child_clone is not csto_result[0] and csto_result[0] is not None:
                 child_csto = csto_result[0]
@@ -450,12 +447,12 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             child_spline = child_csto
 
         if child_spline is None:
-            return self.EmptySpline()
+            return None
 
         # operate the spline modification
         result_spline = OffsetSpline(FinalSpline(child_spline), offset_value)
         if result_spline is None:
-            return self.EmptySpline()
+            return None
 
         # copy the spline parameters value
         CopySplineParamsValue(child_spline, result_spline)
