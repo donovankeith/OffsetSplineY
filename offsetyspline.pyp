@@ -438,6 +438,15 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         # Store now the closure state of the child cause child will be later on overwritten
         is_child_closed = IsClosed(child.GetRealSpline())
 
+        child_csto = self.CurrentStateToObject(child, doc)
+
+        child_spline = None
+        if IsSplineCompatible(child_csto):
+            child_spline = FinalSpline(child_csto)
+
+        return self.GetResultSpline(child, child_spline, offset_value)
+
+    def CurrentStateToObject(self, child, doc):
         # emulate the GetHierarchyClone in the GetContour by using the SendModelingCommand
         child_csto = None
         if child is not None:
@@ -460,11 +469,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
                     if isinstance(join_result, list) and join_result[0] is not None and child_clone is not join_result[0]:
                         child_csto = join_result[0]
 
-        child_spline = None
-        if IsSplineCompatible(child_csto):
-            child_spline = FinalSpline(child_csto)
-
-        return self.GetResultSpline(child, child_spline, offset_value)
+        return child_csto
 
 
 # =====================================================================================================================#
