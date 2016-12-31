@@ -189,6 +189,9 @@ def OffsetSpline(input_spline, offset_value):
     if result_spline is None:
         return None
 
+    # restore the closing status of the spline
+    SetClosed(result_spline, IsClosed(input_spline))
+
     # Offset & Set the Points
     input_spline_points = input_spline.GetAllPoints()
     for i in xrange(point_count):
@@ -368,12 +371,6 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         if result_spline is None:
             return
 
-        # Store now the closure state of the child cause child will be later on overwritten
-        is_child_closed = IsClosed(child.GetRealSpline())  # child_ghc_clone is BaseObject instead of SplineObject
-
-        # restore the closing status of the spline
-        SetClosed(result_spline, is_child_closed)
-
         # copy the spline tags
         child_spline.CopyTagsTo(result_spline, True, c4d.NOTOK, c4d.NOTOK)
 
@@ -409,9 +406,6 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             self._contour_child_dirty = 0
             return None
 
-        # Store now the closure state of the child cause child will be later on overwritten
-        is_child_closed = IsClosed(child.GetRealSpline())
-
         # emulate the GetHierarchyClone in the GetContour by using the SendModelingCommand
         child_csto = None
         if child is not None:
@@ -445,9 +439,6 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         result_spline = OffsetSpline(FinalSpline(child_spline), offset_value)
         if result_spline is None:
             return None
-
-        # restore the closing status of the spline
-        SetClosed(result_spline, is_child_closed)
 
         # copy the spline parameters value
         CopySplineParamsValue(child_spline, result_spline)
