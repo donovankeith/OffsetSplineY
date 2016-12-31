@@ -102,10 +102,13 @@ def IsClosed(spline):
     if spline is None:
         return False
 
+    # ?? In case we've got a LineObject from a cache, get the Spline that created it and check it's closed state. ??
     if spline.GetCacheParent() is not None:
         return spline.GetCacheParent().IsClosed()
     else:
         return spline.IsClosed()
+
+    return spline.IsClosed()
 
 
 def CopySplineParamsValue(source_spline, dest_spline):
@@ -350,7 +353,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         if IsSplineCompatible(child_ghc_clone):
             child_dirty = RecursiveCheckDirty(child)
             if child_spline is None:
-                child_spline = child_ghc_clone
+                child_spline = FinalSpline(child_ghc_clone)
 
         child.Touch()  # Doesn't seem to be necessary
 
@@ -378,12 +381,13 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             return None
 
         # operate the spline modification
-        result_spline = OffsetSpline(FinalSpline(child_spline), offset_value)
+        result_spline = OffsetSpline(child_spline, offset_value)
         if result_spline is None:
             return None
 
-        # For some reason it's very important that these next two lines be here.
-        # They dictact whether deeply nested clones will be updated appropriately.
+        # For some reason it's very important that the next lines be here.
+        # They dictate whether deeply nested clones will be updated appropriately.
+        # Not sure if it's IsClosed() or GetRealSpline() that's doing it
         # Store now the closure state of the child cause child will be later on overwritten
         is_child_closed = IsClosed(child.GetRealSpline())  # child_ghc_clone is BaseObject instead of SplineObject
 
@@ -451,13 +455,13 @@ class OffsetYSpline(c4d.plugins.ObjectData):
 
         child_spline = None
         if IsSplineCompatible(child_csto):
-            child_spline = child_csto
+            child_spline = FinalSpline(child_csto)
 
         if child_spline is None:
             return None
 
         # operate the spline modification
-        result_spline = OffsetSpline(FinalSpline(child_spline), offset_value)
+        result_spline = OffsetSpline(child_spline, offset_value)
         if result_spline is None:
             return None
 
