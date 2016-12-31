@@ -351,8 +351,6 @@ class OffsetYSpline(c4d.plugins.ObjectData):
     def GetVirtualObjects(self, op, hh):
         """Return the result of the generator."""
 
-        print "GVO(%s)" % op.GetName()
-
         if op is None or hh is None:
             return None
 
@@ -397,11 +395,6 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         # dirty status and the member variable value
         # check is &= or |=
         dirty |= (self._child_dirty != child_dirty)
-
-        print "self._child_dirty = %s   |   child_dirty = %s" % (self._child_dirty, child_dirty)
-        if child_dirty != child_dirty:
-            print "child is dirty"
-
         self._child_dirty = child_dirty
 
         if (not dirty) and (cache is not None):
@@ -411,7 +404,6 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         return self.GetResultSpline(child, child_spline, offset_value)
 
     def GetContour(self, op, doc, lod, bt):
-        print "GetContour(%s)" % op.GetName()
 
         if op is None:
             return None
@@ -420,9 +412,6 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             doc = op.GetDocument()
 
         if (doc is None) or (not doc.IsAlive()):
-            doc = c4d.documents.GetActiveDocument()  # Is this safe in a render context?!
-
-        if doc is None:
             return None
 
         bc = op.GetDataInstance()
