@@ -329,12 +329,9 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             self._countour_child_dirty = -1
             return
 
-        # Use the GetHierarchyClone and the GetAndCheckHierarchyClone to operate as a two-step
-        # GetHierarchyClone operates when passing a bool reference in the first step to check
-        # the dirtyness and a nullptr on a second step to operate the real clone
-        result_ghc = op.GetHierarchyClone(hh, child, c4d.HIERARCHYCLONEFLAGS_ASSPLINE)
-        if result_ghc is None:
-            result_ghc = op.GetAndCheckHierarchyClone(hh, child, c4d.HIERARCHYCLONEFLAGS_ASSPLINE, False)
+        # Get the child objects as splines so we can manipulate them.
+        # Note: Was a 2-step process in the example, but the first step always seemed to return Null
+        result_ghc = op.GetAndCheckHierarchyClone(hh, child, c4d.HIERARCHYCLONEFLAGS_ASSPLINE, False)
 
         if result_ghc is not None:
             clone_dirty = result_ghc["dirty"]  # BUG: Always True for some Reason
