@@ -36,12 +36,51 @@ def tracefunc(frame, event, arg, indent=[0]):
     return tracefunc
 
 
-trace = True
+trace = False
 
 if trace:
     sys.settrace(tracefunc)
 
-debug = True
+debug = False
+
+# =====================================================================================================================#
+#   Profiling
+# =====================================================================================================================#
+
+import cProfile
+import functools
+import pstats
+
+def profile(func):
+    """
+    Decorator to profile the function *func*.
+
+    .. attribute:: profile
+
+        The generated profile of the function. Any calls to the wrapped
+        function will contribute to the profile.
+    """
+
+    profile = cProfile.Profile()
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        return profile.runcall(func, *args, **kwargs)
+
+    wrapper.profile = profile
+    return wrapper
+
+def PluginMessage(msg_type, data):
+    if msg_type == c4d.C4DPL_RELOADPYTHONPLUGINS:
+        profile = OffsetYSpline.GetVirtualObjects.profile
+        profile.create_stats()
+        if profile.stats:
+            # Creating the Stats object will fail if the profile
+            # has recorded data.
+            stats = pstats.Stats(profile)
+            stats.sort_stats('time').print_stats()
+
+    return True
 
 # =====================================================================================================================#
 # Global Functions Definitions
@@ -262,6 +301,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
 
         self._countour_child_dirty = child_dirty
 
+    @profile
     def GetVirtualObjects(self, op, hh):
         """Return the result of the generator."""
 
