@@ -308,12 +308,8 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         if op is None or hh is None:
             return None
 
-        child = None
         child_spline = None
-        result_spline = None
         dirty = False
-        clone_dirty = False
-        temp = None
         child_dirty = -1
 
         cache = op.GetCache()
@@ -333,17 +329,18 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         # Note: Was a 2-step process in the example, but the first step always seemed to return Null
         result_ghc = op.GetAndCheckHierarchyClone(hh, child, c4d.HIERARCHYCLONEFLAGS_ASSPLINE, False)
 
+        child_ghc_clone = None
         if result_ghc is not None:
-            clone_dirty = result_ghc["dirty"]  # BUG: Always True for some Reason
-            temp = result_ghc["clone"]
+            child_ghc_dirty = result_ghc["dirty"]  # BUG: Always True for some Reason
+            child_ghc_clone = result_ghc["clone"]
 
         # recursively check the dirty flag for the children (deformers or other generators)
-        if IsSplineCompatible(temp):
+        if IsSplineCompatible(child_ghc_clone):
             child_dirty = RecursiveCheckDirty(child)
             if child_spline is None:
-                child_spline = temp
+                child_spline = child_ghc_clone
 
-        child.Touch()
+        # child.Touch()  # Doesn't seem to be necessary
 
         dirty |= op.IsDirty(c4d.DIRTYFLAGS_DATA)
 
