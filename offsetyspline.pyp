@@ -375,21 +375,19 @@ class OffsetYSpline(c4d.plugins.ObjectData):
 
         # recursively check the dirty flag for the children (deformers or other generators)
         child_dirty = -1
-        child_spline = None
         if IsSplineCompatible(child_ghc_clone):
             child_dirty = RecursiveCheckDirty(child)
 
         child_spline = FinalSpline(child_ghc_clone)
-        child.Touch()  # Doesn't seem to be necessary
 
+        # Has the user updated the settings?
         dirty = op.IsDirty(c4d.DIRTYFLAGS_DATA)
 
-        # compare the dirtyness of local and member variable and accordingly update the generator's
-        # dirty status and the member variable value
-        # check is &= or |=
+        # Is one of the children dirty? Save the updated dirty value.
         dirty |= (self._child_dirty != child_dirty)
         self._child_dirty = child_dirty
 
+        # Return the Cache if it isn't dirty
         cache = op.GetCache()
         if (not dirty) and (cache is not None):
             cache_clone = cache.GetClone(c4d.COPYFLAGS_NO_ANIMATION)  # We clone so that the cache is always alive
@@ -421,7 +419,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         return self.GetResultSpline(op, child, child_spline)
 
     def CurrentStateToObject(self, child, doc):
-        # emulate the GetHierarchyClone in the GetContour by using the SendModelingCommand
+        # Emulate GetHierarchyClone in GetContour by using SendModelingCommand
         child_csto = None
         if child is not None:
             child_clone = child.GetClone(c4d.COPYFLAGS_NO_ANIMATION)
