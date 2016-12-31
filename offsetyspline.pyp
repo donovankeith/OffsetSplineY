@@ -177,22 +177,26 @@ def OffsetSpline(input_spline, offset_value):
     tangent_count = 0
     spline_type = 0
 
-    if (input_spline.GetType() == c4d.Ospline):
+    if input_spline.GetType() == c4d.Ospline:
         tangent_count = input_spline.GetTangentCount()
         spline_type = input_spline.GetInterpolationType()
 
     # allocate the resulting spline
+    # TODO: Add support for segments
     result_spline = c4d.SplineObject(point_count, spline_type)
     if result_spline is None:
         return None
 
-    # set the points position and tangency data
-    for i in range(point_count):
-        # currPos = input_spline.GetPoint(i)
-        cur_pos = input_ml * input_spline.GetPoint(i)
-        result_spline.SetPoint(i, c4d.Vector(cur_pos.x, cur_pos.y + offset_value, cur_pos.z))
-        # set in case the tangency data
-        if tangent_count != 0:
+    # Offset & Set the Points
+    input_spline_points = input_spline.GetAllPoints()
+    for i in xrange(point_count):
+        cur_pos = input_ml * input_spline_points[i]
+        input_spline_points[i] = c4d.Vector(cur_pos.x, cur_pos.y + offset_value, cur_pos.z)
+    result_spline.SetAllPoints(input_spline_points)
+
+    # Set Tangents
+    if tangent_count != 0:
+        for i in xrange(point_count):
             cur_tangent = input_spline.GetTangent(i)
             result_spline.SetTangent(i, input_scale_rotate * cur_tangent["vl"], input_scale_rotate * cur_tangent["vr"])
 
