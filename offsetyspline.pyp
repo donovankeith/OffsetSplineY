@@ -356,10 +356,11 @@ class OffsetYSpline(c4d.plugins.ObjectData):
     def GetVirtualObjects(self, op, hh):
         """Return the result of the generator."""
 
+        # Verify Inputs
         if op is None or hh is None:
             return None
 
-        # look for the first enabled child in order to support hierarchical
+        # Retrieve Input Object
         child = GetFirstActiveChild(op)
         if child is None:
             self.ResetDirtySums()
@@ -377,8 +378,8 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         child_spline = None
         if IsSplineCompatible(child_ghc_clone):
             child_dirty = RecursiveCheckDirty(child)
-            child_spline = FinalSpline(child_ghc_clone)
 
+        child_spline = FinalSpline(child_ghc_clone)
         child.Touch()  # Doesn't seem to be necessary
 
         dirty = op.IsDirty(c4d.DIRTYFLAGS_DATA)
@@ -398,6 +399,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
 
     def GetContour(self, op, doc, lod, bt):
 
+        # Verify Inputs
         if op is None:
             return None
 
@@ -407,16 +409,14 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         if (doc is None) or (not doc.IsAlive()):
             return None
 
+        # Retrieve Input Object
         child = GetFirstActiveChild(op)
         if child is None:
             self.ResetDirtySums()
             return None
 
         child_csto = self.CurrentStateToObject(child, doc)
-
-        child_spline = None
-        if IsSplineCompatible(child_csto):
-            child_spline = FinalSpline(child_csto)
+        child_spline = FinalSpline(child_csto)
 
         return self.GetResultSpline(op, child, child_spline)
 
