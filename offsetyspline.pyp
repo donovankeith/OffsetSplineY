@@ -90,8 +90,7 @@ def SetClosed(spline, value):
     """Global function responsible to set the close status of a spline"""
 
     if spline is not None:
-        spline.SetParameter(c4d.DescID(c4d.DescLevel(c4d.SPLINEOBJECT_CLOSED)), value, c4d.DESCFLAGS_SET_FORCESET)
-        spline.GetDataInstance().SetBool(c4d.SPLINEOBJECT_CLOSED, value)
+        spline[c4d.SPLINEOBJECT_CLOSED] = value
         return True
 
     return False
