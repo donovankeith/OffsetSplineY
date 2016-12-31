@@ -317,9 +317,14 @@ class OffsetYSpline(c4d.plugins.ObjectData):
 
         self._contour_child_dirty = child_dirty
 
-    def GetResultSpline(self, child, child_spline, offset_value):
-        if (child is None) or (child_spline is None) or (offset_value is None):
+    def GetResultSpline(self, op, child, child_spline):
+        if (op is None) or (child is None) or (child_spline is None):
             return None
+
+        bc = op.GetDataInstance()
+        if bc is None:
+            return None
+        offset_value = bc.GetFloat(c4d.PY_OFFSETYSPLINE_OFFSET)
 
         # operate the spline modification
         result_spline = OffsetSpline(child_spline, offset_value)
@@ -354,15 +359,6 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         if op is None or hh is None:
             return None
 
-        child_spline = None
-        dirty = False
-
-        cache = op.GetCache()
-        bc = op.GetDataInstance()
-        if bc is None:
-            return None
-        offset_value = bc.GetFloat(c4d.PY_OFFSETYSPLINE_OFFSET)
-
         # look for the first enabled child in order to support hierarchical
         child = GetFirstActiveChild(op)
         if child is None:
@@ -370,26 +366,22 @@ class OffsetYSpline(c4d.plugins.ObjectData):
             return None
 
         # Get the child objects as splines so we can manipulate them.
-        # Note: Was a 2-step process in the example, but the first step always seemed to return Null
         result_ghc = op.GetAndCheckHierarchyClone(hh, child, c4d.HIERARCHYCLONEFLAGS_ASSPLINE, False)
 
         child_ghc_clone = None
         if result_ghc is not None:
-            child_ghc_dirty = result_ghc["dirty"]  # BUG: Always True for some Reason
             child_ghc_clone = result_ghc["clone"]
 
         # recursively check the dirty flag for the children (deformers or other generators)
         child_dirty = -1
+        child_spline = None
         if IsSplineCompatible(child_ghc_clone):
             child_dirty = RecursiveCheckDirty(child)
-            if child_spline is None:
-                child_spline = FinalSpline(child_ghc_clone)
+            child_spline = FinalSpline(child_ghc_clone)
 
         child.Touch()  # Doesn't seem to be necessary
 
-        dirty |= op.IsDirty(c4d.DIRTYFLAGS_DATA)
-        if dirty:
-            print op.GetName() + " is dirty"
+        dirty = op.IsDirty(c4d.DIRTYFLAGS_DATA)
 
         # compare the dirtyness of local and member variable and accordingly update the generator's
         # dirty status and the member variable value
@@ -397,11 +389,12 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         dirty |= (self._child_dirty != child_dirty)
         self._child_dirty = child_dirty
 
+        cache = op.GetCache()
         if (not dirty) and (cache is not None):
             cache_clone = cache.GetClone(c4d.COPYFLAGS_NO_ANIMATION)  # We clone so that the cache is always alive
             return cache_clone
 
-        return self.GetResultSpline(child, child_spline, offset_value)
+        return self.GetResultSpline(op, child, child_spline)
 
     def GetContour(self, op, doc, lod, bt):
 
@@ -414,11 +407,6 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         if (doc is None) or (not doc.IsAlive()):
             return None
 
-        bc = op.GetDataInstance()
-        if bc is None:
-            return None
-        offset_value = bc.GetFloat(c4d.PY_OFFSETYSPLINE_OFFSET)
-
         child = GetFirstActiveChild(op)
         if child is None:
             self.ResetDirtySums()
@@ -430,7 +418,7 @@ class OffsetYSpline(c4d.plugins.ObjectData):
         if IsSplineCompatible(child_csto):
             child_spline = FinalSpline(child_csto)
 
-        return self.GetResultSpline(child, child_spline, offset_value)
+        return self.GetResultSpline(op, child, child_spline)
 
     def CurrentStateToObject(self, child, doc):
         # emulate the GetHierarchyClone in the GetContour by using the SendModelingCommand
